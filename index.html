@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inscription - Soirée Barbecue 🔥</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #ff6b35, #f7931e, #ff4757);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, #ff6b35, #f7931e, #ff4757);
+        }
+
+        .header {
+            margin-bottom: 30px;
+        }
+
+        .title {
+            font-size: 2.5em;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .emoji {
+            font-size: 3em;
+            margin: 0 10px;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+
+        .subtitle {
+            color: #7f8c8d;
+            font-size: 1.2em;
+            margin-bottom: 20px;
+        }
+
+        .event-info {
+            background: linear-gradient(135deg, #74b9ff, #0984e3);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            transform: perspective(1000px) rotateX(5deg);
+            transition: transform 0.3s ease;
+        }
+
+        .event-info:hover {
+            transform: perspective(1000px) rotateX(0deg) scale(1.02);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            color: #2c3e50;
+            font-weight: bold;
+            margin-bottom: 8px;
+            font-size: 1.1em;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #ff6b35;
+            box-shadow: 0 0 20px rgba(255, 107, 53, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            padding: 15px;
+            background: rgba(116, 185, 255, 0.1);
+            border-radius: 10px;
+            transition: background 0.3s ease;
+        }
+
+        .checkbox-group:hover {
+            background: rgba(116, 185, 255, 0.2);
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: auto;
+            margin-right: 10px;
+            transform: scale(1.2);
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, #ff6b35, #ff4757);
+            color: white;
+            border: none;
+            padding: 18px 40px;
+            font-size: 1.2em;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 20px rgba(255, 107, 53, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(255, 107, 53, 0.4);
+            background: linear-gradient(135deg, #ff4757, #ff6b35);
+        }
+
+        .submit-btn:active {
+            transform: translateY(-1px);
+        }
+
+        .success-message {
+            display: none;
+            background: linear-gradient(135deg, #00b894, #00cec9);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 20px;
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fire-animation {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            font-size: 2em;
+            animation: fire 1.5s infinite;
+        }
+
+        @keyframes fire {
+            0%, 100% { transform: rotate(-10deg) scale(1); }
+            50% { transform: rotate(10deg) scale(1.1); }
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+                margin: 10px;
+            }
+            
+            .title {
+                font-size: 2em;
+            }
+            
+            .emoji {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="fire-animation">🔥</div>
+        
+        <div class="header">
+            <h1 class="title">
+                <span class="emoji">🍖</span>
+                Soirée Barbecue
+                <span class="emoji">🔥</span>
+            </h1>
+            <p class="subtitle">Rejoignez-nous pour une soirée inoubliable !</p>
+        </div>
+
+        <div class="event-info">
+            <h3>📅 Samedi 15 Juillet 2025</h3>
+            <p>🕕 À partir de 18h00</p>
+            <p>📍 Jardin de la Maison - 123 Rue du Barbecue</p>
+            <p>💰 Participation : 15€ par personne</p>
+        </div>
+
+        <form id="inscriptionForm">
+            <div class="form-group">
+                <label for="nom">Nom complet *</label>
+                <input type="text" id="nom" name="nom" required>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email *</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+
+            <div class="form-group">
+                <label>Préférences alimentaires :</label>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="vegetarien" name="preferences" value="vegetarien">
+                    <label for="vegetarien">🥗 Végétarien</label>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="vegan" name="preferences" value="vegan">
+                    <label for="vegan">🌱 Vegan</label>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="sans-gluten" name="preferences" value="sans-gluten">
+                    <label for="sans-gluten">🌾 Sans gluten</label>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="apporte">Que comptez-vous apporter ?</label>
+                <select id="apporte" name="apporte">
+                    <option value="">Rien de spécial</option>
+                    <option value="salade">🥗 Salade</option>
+                    <option value="dessert">🍰 Dessert</option>
+                    <option value="boissons">🥤 Boissons</option>
+                    <option value="pain">🥖 Pain</option>
+                    <option value="autre">🎁 Autre chose</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="commentaires">Commentaires ou suggestions</label>
+                <textarea id="commentaires" name="commentaires" rows="3" placeholder="Allergies, demandes spéciales, messages..."></textarea>
+            </div>
+
+            <button type="submit" class="submit-btn">
+                🔥 Confirmer mon inscription 🔥
+            </button>
+        </form>
+
+        <div id="successMessage" class="success-message">
+            <h3>🎉 Inscription confirmée !</h3>
+            <p>Merci ! Nous avons hâte de vous voir à la soirée barbecue !</p>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('inscriptionForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const submitBtn = document.querySelector('.submit-btn');
+            submitBtn.style.transform = 'scale(0.95)';
+            submitBtn.innerHTML = '🔄 Inscription en cours...';
+            
+            setTimeout(() => {
+                const form = document.getElementById('inscriptionForm');
+                const successMessage = document.getElementById('successMessage');
+                
+                form.style.display = 'none';
+                successMessage.style.display = 'block';
+                
+                // Effet confettis avec des emojis
+                createConfetti();
+            }, 1500);
+        });
+
+        function createConfetti() {
+            const emojis = ['🎉', '🔥', '🍖', '🥗', '🍰', '🎊'];
+            const container = document.querySelector('.container');
+            
+            for (let i = 0; i < 20; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.innerHTML = emojis[Math.floor(Math.random() * emojis.length)];
+                    confetti.style.position = 'absolute';
+                    confetti.style.left = Math.random() * 100 + '%';
+                    confetti.style.top = '0';
+                    confetti.style.fontSize = '2em';
+                    confetti.style.zIndex = '1000';
+                    confetti.style.pointerEvents = 'none';
+                    confetti.style.animation = `fall ${2 + Math.random() * 2}s linear forwards`;
+                    
+                    container.appendChild(confetti);
+                    
+                    setTimeout(() => confetti.remove(), 4000);
+                }, i * 100);
+            }
+        }
+
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fall {
+                to {
+                    transform: translateY(600px) rotate(360deg);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const emojis = document.querySelectorAll('.emoji');
+            emojis.forEach((emoji, index) => {
+                emoji.style.animationDelay = index * 0.2 + 's';
+            });
+        });
+    </script>
+</body>
+</html>
