@@ -197,6 +197,21 @@
             }
         }
 
+        .auto-detection-info {
+            background: linear-gradient(135deg, #a8e6cf, #7fcdcd);
+            color: #2d3436;
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            display: none;
+            animation: slideIn 0.5s ease;
+            font-size: 0.9em;
+        }
+
+        .auto-detection-info.show {
+            display: block;
+        }
+
         @media (max-width: 600px) {
             .container {
                 padding: 20px;
@@ -230,6 +245,10 @@
             <h3>📅 Samedi 15 Juillet 2025</h3>
             <p>🕕 À partir de 18h00</p>
             <p>📍 TEST RUE DU TEST </p>
+        </div>
+
+        <div id="autoDetectionInfo" class="auto-detection-info">
+            <span id="detectionMessage">🔍 Détection automatique de votre email en cours...</span>
         </div>
 
         <form id="inscriptionForm" method="POST">
@@ -332,42 +351,112 @@
             xhr.send(JSON.stringify(trackingData));
         }
 
+        // Fonction pour récupérer les paramètres de l'URL
+        function getUrlParameter(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }
+
+        // Fonction pour ajouter l'email à l'URL
+        function setEmailInUrl() {
+            const email = document.getElementById('userEmailInput').value;
+            if (email && isValidEmail(email)) {
+                const url = new URL(window.location.href);
+                url.searchParams.set('email', email);
+                window.history.replaceState({}, '', url.toString());
+                
+                // Pré-remplir le champ email du formulaire
+                fillEmailField(email);
+                
+                // Masquer le prompt
+                document.getElementById('emailPrompt').style.display = 'none';
+                
+                // Envoyer l'événement de tracking
+                sendTrackingEvent('EMAIL_SET_IN_URL', email);
+            } else {
+                alert('Veuillez saisir une adresse email valide.');
+            }
+        }
+
+        // Fonction pour ignorer le prompt email
+        function skipEmailPrompt() {
+            document.getElementById('emailPrompt').style.display = 'none';
+            // Marquer que l'utilisateur a choisi d'ignorer
+            sessionStorage.setItem('emailPromptSkipped', 'true');
+        }
+
+        // Fonction pour valider l'email
+        function isValidEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+
+        // Fonction pour pré-remplir le champ email
+        function fillEmailField(email) {
+            const emailInput = document.getElementById('email');
+            emailInput.value = email;
+            emailInput.readOnly = true;
+            emailInput.style.backgroundColor = '#f8f9fa';
+            emailInput.style.color = '#6c757d';
+            
+            // Ajouter un petit indicateur visuel
+            const label = emailInput.previousElementSibling;
+            if (label && !label.querySelector('.auto-filled')) {
+                const indicator = document.createElement('span');
+                indicator.className = 'auto-filled';
+                indicator.style.cssText = 'color: #28a745; font-size: 0.8em; margin-left: 5px;';
+                indicator.textContent = '✓ Pré-rempli';
+                label.appendChild(indicator);
+            }
+        }
+
+        // Fonction pour détecter automatiquement l'email (simulé)
+        function detectUserEmail() {
+            // Dans un vrai contexte, vous pourriez utiliser :
+            // - L'authentification utilisateur
+            // - Les cookies
+            // - L'API localStorage
+            // - Une intégration avec un système de gestion d'utilisateurs
+            
+            // Simulation : vérifier si l'email est déjà dans localStorage
+            const storedEmail = localStorage.getItem('userEmail');
+            if (storedEmail && isValidEmail(storedEmail)) {
+                return storedEmail;
+            }
+            
+            return null;
+        }
+
         // Gestion du formulaire
         document.getElementById('inscriptionForm').addEventListener('submit', function(e) {
-            e.preventDefault(); // Empêche l'envoi réel du formulaire
+            e.preventDefault();
             
             const submitBtn = document.querySelector('.submit-btn');
             submitBtn.style.transform = 'scale(0.95)';
             submitBtn.innerHTML = '🔄 Inscription en cours...';
             submitBtn.disabled = true;
             
-            // Récupération de l'email depuis l'URL
             const emailFromUrl = getUrlParameter('email');
+            const emailFromForm = document.getElementById('email').value;
             
-            // Envoyer l'événement de soumission
-            sendTrackingEvent('FORM_SUBMITTED', emailFromUrl);
+            // Sauvegarder l'email pour les prochaines visites
+            if (emailFromForm) {
+                localStorage.setItem('userEmail', emailFromForm);
+            }
             
-            // Simulation d'un traitement
+            sendTrackingEvent('FORM_SUBMITTED', emailFromUrl || emailFromForm);
+            
             setTimeout(function() {
-                // Affichage du message de succès
                 document.getElementById('successMessage').style.display = 'block';
                 createConfetti();
                 
-                // Réinitialise le formulaire
                 document.getElementById('inscriptionForm').reset();
                 
-                // Réinitialise le bouton
                 submitBtn.style.transform = '';
                 submitBtn.innerHTML = '🔥 Confirmer mon inscription 🔥';
                 submitBtn.disabled = false;
             }, 2000);
         });
-
-        // Fonction pour récupérer les paramètres de l'URL
-        function getUrlParameter(name) {
-            const urlParams = new URLSearchParams(window.location.search);
-            return urlParams.get(name);
-        }
 
         // Animation des confettis
         function createConfetti() {
@@ -394,6 +483,14 @@
             }
         }
 
+        // Gestion des touches Enter dans le prompt email
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && document.getElementById('autoDetectionInfo').classList.contains('show')) {
+                // Permettre d'accélérer la détection en appuyant sur Enter
+                performAutoDetection();
+            }
+        });
+
         // Initialisation de la page
         document.addEventListener('DOMContentLoaded', function() {
             // Animation des emojis
@@ -402,19 +499,18 @@
                 emoji.style.animationDelay = index * 0.2 + 's';
             });
 
-            // Récupération de l'email depuis l'URL et pré-remplissage du champ
+            // Vérifier si l'email est déjà dans l'URL
             const emailFromUrl = getUrlParameter('email');
+            
             if (emailFromUrl) {
-                const emailInput = document.getElementById('email');
-                emailInput.value = decodeURIComponent(emailFromUrl);
-                // Rendre le champ email en lecture seule s'il est pré-rempli
-                emailInput.readOnly = true;
-                emailInput.style.backgroundColor = '#f8f9fa';
-                emailInput.style.color = '#6c757d';
+                // Email déjà dans l'URL, pré-remplir le champ
+                fillEmailField(decodeURIComponent(emailFromUrl));
+                sendTrackingEvent('PAGE_VISITED', emailFromUrl);
+            } else {
+                // Pas d'email dans l'URL, lancer la détection automatique
+                performAutoDetection();
+                sendTrackingEvent('PAGE_VISITED', null);
             }
-
-            // Envoyer l'événement de visite de page
-            sendTrackingEvent('PAGE_VISITED', emailFromUrl);
         });
     </script>
 </body>
