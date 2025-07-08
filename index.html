@@ -325,6 +325,25 @@
 
     <script>
         // Fonction pour envoyer les événements de tracking
+        const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwE-ZTSgE6YpWw6Ilz0cdGRx_N49P-uMyYrIhZBD-EgdlicfM9d7MGWzHkjfMKWet8l6A/exec';
+        async function sendToGoogleSheet(trackingData) {
+                try {
+                    const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
+                        method: 'POST',
+                        mode: 'no-cors', // Important pour éviter les problèmes CORS
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(trackingData)
+                    });
+            
+                    console.log('Données envoyées avec succès vers Google Sheet');
+                    return true;
+                } catch (error) {
+                    console.error('Erreur lors de l\'envoi vers Google Sheet:', error);
+                    return false;
+                }
+        }
         function sendTrackingEvent(eventType, emailFromUrl) {
             const trackingData = {
                 email: emailFromUrl || 'email non trouvé',
@@ -333,22 +352,14 @@
                 userAgent: navigator.userAgent,
                 url: window.location.href
             };
+
+             const success = await sendToGoogleSheet(trackingData);
             
-            const xhr = new XMLHttpRequest();
-            xhr.open('POST', 'https://httpbin.org/post', true);
-            xhr.setRequestHeader('Content-Type', 'application/json');
-            
-            xhr.onreadystatechange = function() {
-                if (xhr.readyState === 4) {
-                    if (xhr.status === 200) {
-                        console.log(`${eventType} envoyé avec succès:`, xhr.responseText);
-                    } else {
-                        console.error(`Erreur lors de l'envoi ${eventType}:`, xhr.status);
-                    }
-                }
-            };
-            
-            xhr.send(JSON.stringify(trackingData));
+            if (success) {
+                console.log('Tracking réussi');
+            } else {
+                console.log('Échec du tracking');
+            }
         }
 
         // Fonction pour récupérer les paramètres de l'URL
