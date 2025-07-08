@@ -344,7 +344,7 @@
                     return false;
                 }
         }
-        function sendTrackingEvent(eventType, emailFromUrl) {
+        async function sendTrackingEvent(eventType, emailFromUrl) {
             const trackingData = {
                 email: emailFromUrl || 'email non trouvé',
                 eventType: eventType,
